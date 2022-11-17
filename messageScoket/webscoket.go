@@ -163,7 +163,6 @@ func (w *WebSocketDefaultImpl) handleMessage() {
 			log.Printf("%v parseAndHandle failed, %v", payload, err)
 		}
 	}
-	/*log.Infof("%s message queue is closed", c.session)*/
 }
 
 func (w *WebSocketDefaultImpl) readyHandler(payload *dto.WSPayload) {
