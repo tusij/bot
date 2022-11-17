@@ -2,8 +2,8 @@ package openapi
 
 import (
 	"context"
+	"github.com/tusij/bot.git/config"
 	"github.com/tusij/bot.git/modle/dto"
-	"github.com/tusij/bot.git/token"
 	"time"
 )
 
@@ -13,7 +13,7 @@ type OpenAPI interface {
 	MessageAPI
 }
 type Base interface {
-	Setup(token *token.Token, timeoutMS, idleConns int) OpenAPI
+	Setup(c *config.OpenAPIConfig) OpenAPI
 
 	WithTimeout(duration time.Duration) OpenAPI
 }

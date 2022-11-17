@@ -3,14 +3,13 @@ package service
 import (
 	"context"
 	"github.com/go-resty/resty/v2"
+	"github.com/tusij/bot.git/config"
 	"github.com/tusij/bot.git/modle/dto"
-	"net"
-	"net/http"
+	"github.com/tusij/bot.git/utils"
 	"time"
 )
 
 const (
-	token       = "3d9b19211b44ce2b8f4d9cbd9ca4d582"
 	weather_api = "http://apis.juhe.cn/simpleWeather/query"
 )
 
@@ -26,10 +25,14 @@ type WeatherServiceJuHeImpl struct {
 	restyClient *resty.Client // resty client http客户端工具
 }
 
-func NewJuHeWeatherService(timeoutMS, idleConns int) WeatherService {
+func NewJuHeWeatherService(c *config.WeatherServiceConfig) WeatherService {
+	idleConns := c.HttpClientConfig.IdleConns
+	if idleConns < 0 {
+		idleConns = 3000
+	}
 	s := &WeatherServiceJuHeImpl{
-		token:     token,
-		timeout:   time.Duration(timeoutMS) * time.Millisecond,
+		token:     c.Token,
+		timeout:   time.Duration(c.HttpClientConfig.Timeout) * time.Millisecond,
 		idleConns: idleConns,
 
 		restyClient: nil,
@@ -39,31 +42,10 @@ func NewJuHeWeatherService(timeoutMS, idleConns int) WeatherService {
 	return s
 }
 
-func createTransport(localAddr net.Addr, idleConns int) *http.Transport {
-	dialer := &net.Dialer{
-		Timeout:   60 * time.Second,
-		KeepAlive: 60 * time.Second,
-	}
-	if localAddr != nil {
-		dialer.LocalAddr = localAddr
-	}
-	return &http.Transport{
-		Proxy:                 http.ProxyFromEnvironment,
-		DialContext:           dialer.DialContext,
-		ForceAttemptHTTP2:     true,
-		MaxIdleConns:          idleConns,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-		MaxIdleConnsPerHost:   idleConns,
-		MaxConnsPerHost:       idleConns,
-	}
-}
-
 // 初始化 client
 func (w *WeatherServiceJuHeImpl) setupClient() {
 	w.restyClient = resty.New().
-		SetTransport(createTransport(nil, w.idleConns)). // 自定义 transport
+		SetTransport(utils.CreateTransport(nil, w.idleConns)). // 自定义 transport
 		SetTimeout(w.timeout)
 }
 

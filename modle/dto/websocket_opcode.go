@@ -19,15 +19,3 @@ const (
 	WSHeartbeatAck
 	HTTPCallbackAck
 )
-
-// opMeans op 对应的含义字符串标识
-var opMeans = map[OPCode]string{
-	WSDispatchEvent:  "Event",
-	WSHeartbeat:      "Heartbeat",
-	WSIdentity:       "Identity",
-	WSResume:         "Resume",
-	WSReconnect:      "Reconnect",
-	WSInvalidSession: "InvalidSession",
-	WSHello:          "Hello",
-	WSHeartbeatAck:   "HeartbeatAck",
-}

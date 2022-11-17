@@ -10,7 +10,6 @@ import (
 
 // 职责是为了管理session从而启动监听
 type SessionManager interface {
-	// Start 启动连接，默认使用 apInfo 中的 shards 作为 shard 数量，如果有需要自己指定 shard 数，请修 apInfo 中的信息
 	Start(apInfo *dto.WebsocketAP, token *token.Token, intents *dto.Intent) error
 }
 
@@ -57,7 +56,7 @@ func (c *ChannelSessionManagerImpl) Start(apInfo *dto.WebsocketAP, token *token.
 func (c *ChannelSessionManagerImpl) connect(session dto.Session) {
 	var wsClient WebSocket
 	var err error
-	wsClient = (*&WebSocketDefaultImpl{}).New(session)
+	wsClient = NewWebSocketClient(session)
 	if err = wsClient.Connect(); err != nil {
 		log.Printf("ws connect error session:%v err:%v", session, err)
 		//如果连接失败需要重试 todo 需要判断URL为空的情况 这种情况不应该重试

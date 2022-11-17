@@ -3,11 +3,11 @@ package openapi
 import (
 	"context"
 	"fmt"
+	"github.com/tusij/bot.git/config"
 	"github.com/tusij/bot.git/modle/dto"
 	"github.com/tusij/bot.git/token"
+	"github.com/tusij/bot.git/utils"
 
-	"net"
-	"net/http"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -30,14 +30,15 @@ func (o *OpenAPImpl) TraceID() string {
 }
 
 // Setup 生成一个实例
-func (o *OpenAPImpl) Setup(token *token.Token, timeoutMS, idleConns int) OpenAPI {
+func (o *OpenAPImpl) Setup(c *config.OpenAPIConfig) OpenAPI {
+	idleConns := c.HttpClientConfig.IdleConns
 	if idleConns == 0 {
 		idleConns = MaxIdleConns
 	}
 
 	api := &OpenAPImpl{
-		token:     token,
-		timeout:   time.Duration(timeoutMS) * time.Millisecond,
+		token:     c.Token,
+		timeout:   time.Duration(c.HttpClientConfig.Timeout) * time.Millisecond,
 		idleConns: idleConns,
 	}
 
@@ -60,7 +61,7 @@ func (o *OpenAPImpl) Transport(ctx context.Context, method, url string, body int
 // 初始化 client
 func (o *OpenAPImpl) setupClient() {
 	o.restyClient = resty.New().
-		SetTransport(createTransport(nil, o.idleConns)). // 自定义 transport
+		SetTransport(utils.CreateTransport(nil, o.idleConns)). // 自定义 transport
 		SetTimeout(o.timeout).
 		SetAuthToken(o.token.GetString()).
 		SetAuthScheme(o.token.Type)
@@ -69,27 +70,6 @@ func (o *OpenAPImpl) setupClient() {
 // request 每个请求，都需要创建一个 request
 func (o *OpenAPImpl) request(ctx context.Context) *resty.Request {
 	return o.restyClient.R().SetContext(ctx)
-}
-
-func createTransport(localAddr net.Addr, idleConns int) *http.Transport {
-	dialer := &net.Dialer{
-		Timeout:   60 * time.Second,
-		KeepAlive: 60 * time.Second,
-	}
-	if localAddr != nil {
-		dialer.LocalAddr = localAddr
-	}
-	return &http.Transport{
-		Proxy:                 http.ProxyFromEnvironment,
-		DialContext:           dialer.DialContext,
-		ForceAttemptHTTP2:     true,
-		MaxIdleConns:          idleConns,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-		MaxIdleConnsPerHost:   idleConns,
-		MaxConnsPerHost:       idleConns,
-	}
 }
 
 func (o *OpenAPImpl) GetWSInfo(ctx context.Context, params map[string]string, body string) (*dto.WebsocketAP, error) {

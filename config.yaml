@@ -1,0 +1,14 @@
+open_api_config:
+  token:
+    appid: 102031290
+    token: zPzcRITV8ggJmAIYmlQXTc1iN0GTaRNV
+    type: Bot
+  http_client_config:
+    timeout: 3000
+    idle_conns: 1000
+
+weather_service_config:
+  token:  3d9b19211b44ce2b8f4d9cbd9ca4d582
+  http_client_config:
+    timeout: 3000
+    idle_conns: 1000

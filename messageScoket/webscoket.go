@@ -11,9 +11,15 @@ import (
 	"time"
 )
 
+const (
+	TEXT   = 1
+	BINARY = 2
+	CLOSE  = 8
+	PING   = 9
+	PONG   = 10
+)
+
 type WebSocket interface {
-	// New 创建一个新的ws实例，需要传递 session 对象
-	New(session dto.Session) WebSocket
 	// Connect 连接到 wss 地址
 	Connect() error
 	// 鉴权连接 连接鉴权后才能使用
@@ -38,7 +44,7 @@ type WebSocketDefaultImpl struct {
 	heartBeatTicker *time.Ticker
 }
 
-func (w *WebSocketDefaultImpl) New(session dto.Session) WebSocket {
+func NewWebSocketClient(session dto.Session) WebSocket {
 	return &WebSocketDefaultImpl{
 		messageQueue:    make(chan *dto.WSPayload, 100),
 		session:         &session,
@@ -208,14 +214,7 @@ func (w *WebSocketDefaultImpl) Write(message *dto.WSPayload) error {
 		log.Printf("WebSocketDefaultImpl.Write json marshal error messgae:%v err:%v", message, err)
 	}
 
-	/**
-	1 text data
-	2 binary message
-	8 close message
-	9 ping message
-	10 pong message
-	*/
-	if err = w.conn.WriteMessage(1, m); err != nil {
+	if err = w.conn.WriteMessage(TEXT, m); err != nil {
 		log.Printf("WebSocketDefaultImpl.Write write message error messgae:%v err:%v", message, err)
 		w.errChan <- err
 		return err
